@@ -1,0 +1,24 @@
+[Unit]
+Description=Orange Pi 3 LTS Phone API and Web UI (Quectel EC25-E)
+After=ec25-bind.service network.target
+Wants=ec25-bind.service
+
+[Service]
+Type=simple
+User=shoim2
+Group=shoim2
+SupplementaryGroups=dialout
+WorkingDirectory=/home/shoim2/phone
+Environment=PHONE_PORT=8080
+# Use the udev symlink, not /dev/ttyUSBn: this firmware resets itself on some
+# operations and the tty numbering can shift after the USB re-enumeration.
+Environment=PHONE_AT_PORT=/dev/ec25-at
+Environment=PHONE_DB=/home/shoim2/phone/data/phone.db
+ExecStart=/usr/bin/python3 /home/shoim2/phone/app.py
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

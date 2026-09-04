@@ -1,0 +1,404 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --panel2: #1c232c;
+  --line: #2a323d;
+  --text: #e6edf3;
+  --muted: #8b98a8;
+  --accent: #f2711c;
+  --accent2: #ff9248;
+  --ok: #2ea043;
+  --err: #e5534b;
+  --radius: 10px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 "Segoe UI", Roboto, system-ui, sans-serif;
+}
+
+/* --- top bar --- */
+.topbar {
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 10px 18px;
+  background: linear-gradient(90deg, #1a1f27, #12161c);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 9px; }
+.brand strong { font-size: 15px; letter-spacing: .2px; }
+.sub { color: var(--muted); font-size: 12px; }
+.dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--err); box-shadow: 0 0 8px currentColor;
+}
+.dot.on { background: var(--ok); }
+
+.statusstrip { display: flex; gap: 16px; flex-wrap: wrap; margin-left: auto; }
+.statusstrip .item { font-size: 12px; color: var(--muted); }
+.statusstrip .item b { color: var(--text); font-weight: 600; }
+
+.powerbox { display: flex; align-items: center; gap: 6px; }
+
+/* --- call bar --- */
+.callbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 18px;
+  background: #24303c; border-bottom: 1px solid var(--line);
+}
+.pulse {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--ok);
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse { 50% { opacity: .25; } }
+
+/* --- tabs --- */
+.tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  padding: 10px 14px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+.tab {
+  background: transparent; color: var(--muted);
+  border: 1px solid transparent; border-bottom: none;
+  padding: 8px 15px; border-radius: 8px 8px 0 0;
+  cursor: pointer; font-size: 13px;
+}
+.tab:hover { color: var(--text); background: #1a2029; }
+.tab.active {
+  color: var(--text); background: var(--panel);
+  border-color: var(--line); font-weight: 600;
+}
+.badge {
+  background: var(--accent); color: #10141a; font-weight: 700;
+  border-radius: 9px; padding: 0 6px; font-size: 11px; margin-left: 5px;
+}
+
+main { padding: 16px; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+.grid2 {
+  display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr); gap: 16px;
+}
+@media (max-width: 950px) { .grid2 { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 15px;
+}
+.card h2 { margin: 0 0 12px; font-size: 14px; letter-spacing: .3px; }
+.card h3 { margin: 16px 0 8px; font-size: 13px; color: var(--muted); }
+
+/* --- controls --- */
+.row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.row .grow, .grow { flex: 1; }
+
+input, select, textarea {
+  background: var(--panel2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 9px 11px; font: inherit; width: 100%; min-width: 0;
+}
+textarea { resize: vertical; font-family: inherit; }
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--accent);
+}
+.lbl { display: block; color: var(--muted); font-size: 12px; margin: 10px 0 5px; }
+
+.btn {
+  background: var(--panel2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 9px 15px; cursor: pointer; font: inherit; white-space: nowrap;
+}
+.btn:hover { border-color: #3d4854; background: #222b35; }
+.btn.primary {
+  background: var(--accent); border-color: var(--accent); color: #10141a;
+  font-weight: 600;
+}
+.btn.primary:hover { background: var(--accent2); }
+.btn.danger { border-color: #5c2b2b; color: #ff9d95; }
+.btn.danger:hover { background: #3a2020; }
+.btn.small { padding: 6px 11px; font-size: 12px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.display {
+  font-size: 24px; letter-spacing: 1.5px; text-align: center;
+  padding: 13px; margin-bottom: 12px; font-variant-numeric: tabular-nums;
+}
+
+.keypad {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-bottom: 12px;
+}
+.keypad button {
+  background: var(--panel2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 14px 0; font-size: 17px; cursor: pointer;
+}
+.keypad button:hover { background: #232c37; border-color: #3d4854; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.chip {
+  background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 14px; padding: 4px 11px; font-size: 12px; cursor: pointer;
+  color: var(--muted);
+}
+.chip:hover { color: var(--text); border-color: var(--accent); }
+
+.output {
+  background: #0b0e13; border: 1px solid var(--line); border-radius: 8px;
+  padding: 12px; margin: 0; overflow: auto; max-height: 260px;
+  font: 12.5px/1.6 ui-monospace, Consolas, monospace;
+  white-space: pre-wrap; word-break: break-word; color: #c9d5e1;
+}
+.output.tall { max-height: 420px; min-height: 200px; }
+
+.result { font-size: 12.5px; min-height: 18px; }
+.result.ok { color: var(--ok); }
+.result.err { color: var(--err); }
+
+/* --- tables --- */
+.tablewrap { overflow: auto; max-height: 460px; border-radius: 8px; }
+.tablewrap.short { max-height: 200px; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th, td {
+  text-align: left; padding: 7px 9px;
+  border-bottom: 1px solid var(--line); white-space: nowrap;
+}
+th {
+  color: var(--muted); font-weight: 600; position: sticky; top: 0;
+  background: var(--panel); z-index: 1;
+}
+td.wrap { white-space: normal; word-break: break-word; }
+tbody tr:hover { background: #1b222b; }
+.tag {
+  font-size: 11px; padding: 1px 7px; border-radius: 9px;
+  border: 1px solid var(--line); color: var(--muted);
+}
+.tag.out { color: #7fb5ff; border-color: #2c4670; }
+.tag.in { color: #86e3a5; border-color: #2a5638; }
+.tag.bad { color: #ff9d95; border-color: #5c2b2b; }
+
+/* --- messenger --- */
+.messenger {
+  display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px;
+  height: calc(100vh - 190px); min-height: 460px;
+}
+@media (max-width: 860px) {
+  .messenger { grid-template-columns: 1fr; height: auto; }
+}
+.threads, .conversation {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.threadhead {
+  display: flex; gap: 8px; padding: 11px; border-bottom: 1px solid var(--line);
+}
+#thread-list { overflow-y: auto; flex: 1; }
+.thread {
+  padding: 11px 13px; border-bottom: 1px solid var(--line); cursor: pointer;
+}
+.thread:hover { background: #1b222b; }
+.thread.active { background: #22303e; border-left: 3px solid var(--accent); }
+.thread .who { display: flex; justify-content: space-between; gap: 8px; }
+.thread .who b { font-size: 13px; }
+.thread .when { color: var(--muted); font-size: 11px; }
+.thread .prev {
+  color: var(--muted); font-size: 12px; margin-top: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.thread .unread {
+  background: var(--accent); color: #10141a; border-radius: 9px;
+  padding: 0 6px; font-size: 11px; font-weight: 700;
+}
+
+.convhead {
+  display: flex; align-items: center; gap: 8px;
+  padding: 11px 13px; border-bottom: 1px solid var(--line);
+}
+.bubbles {
+  flex: 1; overflow-y: auto; padding: 14px;
+  display: flex; flex-direction: column; gap: 9px;
+}
+.bubble {
+  max-width: 72%; padding: 9px 12px; border-radius: 13px;
+  font-size: 13px; word-break: break-word; white-space: pre-wrap;
+}
+.bubble.in { align-self: flex-start; background: #242c36; border-bottom-left-radius: 4px; }
+.bubble.out { align-self: flex-end; background: #3a3020; border-bottom-right-radius: 4px; }
+.bubble.failed { border: 1px solid #5c2b2b; }
+.bubble .stamp {
+  display: block; margin-top: 4px; font-size: 10.5px; color: var(--muted);
+}
+.composer { border-top: 1px solid var(--line); padding: 11px; }
+.composer .row { margin-bottom: 6px; }
+.composer .meta {
+  display: flex; justify-content: space-between;
+  color: var(--muted); font-size: 11px;
+}
+.empty { color: var(--muted); text-align: center; margin: auto; max-width: 340px; }
+
+/* --- api explorer --- */
+.apigroup { margin-bottom: 12px; }
+.apigroup > div.h {
+  color: var(--muted); font-size: 11px; text-transform: uppercase;
+  letter-spacing: .6px; margin-bottom: 5px;
+}
+.apiitem {
+  display: flex; gap: 8px; align-items: center; padding: 5px 7px;
+  border-radius: 7px; cursor: pointer; font-size: 12.5px;
+}
+.apiitem:hover { background: #1b222b; }
+.apiitem .m {
+  font-size: 10.5px; font-weight: 700; padding: 1px 6px;
+  border-radius: 5px; min-width: 48px; text-align: center;
+}
+.m.GET { background: #1d3a5c; color: #9ccbff; }
+.m.POST { background: #26472c; color: #a5e5b6; }
+.m.PUT { background: #4a3a1c; color: #ffd79a; }
+.m.DELETE { background: #4d2424; color: #ffa8a1; }
+.apiitem .p { font-family: ui-monospace, Consolas, monospace; }
+.apiitem .s { color: var(--muted); margin-left: auto; font-size: 11.5px; }
+
+/* --- voice / SMS mode --- */
+.modebox {
+  display: flex; align-items: center; gap: 8px;
+  padding-left: 14px; margin-left: 4px; border-left: 1px solid var(--line);
+}
+.modelabel { color: var(--muted); font-size: 12px; }
+.modepill {
+  font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 12px;
+  border: 1px solid var(--line); white-space: nowrap;
+}
+.modepill.voice { color: #9ccbff; border-color: #2c4670; background: #16233a; }
+.modepill.sms { color: #ffd79a; border-color: #4a3a1c; background: #2e2515; }
+.modepill.busy { color: var(--muted); }
+
+.modebanner {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 18px; background: #2c2416;
+  border-bottom: 1px solid var(--line); font-size: 13px;
+}
+.spin {
+  width: 12px; height: 12px; border-radius: 50%; flex: none;
+  border: 2px solid #6b5a33; border-top-color: var(--accent);
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* The banner doubles as the power-action notice. A refused reboot is not work
+   in progress, so the spinner would be a lie — drop it and say so in red. */
+.modebanner.err { background: #2f1d1c; color: #ff9d95; }
+.modebanner.err .spin { display: none; }
+
+.hidden { display: none !important; }
+
+/* record-this-call checkbox */
+.check { display:flex; align-items:center; gap:7px; color:var(--muted); font-size:12.5px; white-space:nowrap; }
+.check input { width:auto; }
+
+/* --- login page --- */
+.loginbody {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 20px;
+}
+.logincard {
+  width: 100%; max-width: 380px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px;
+}
+.loginbrand { display: flex; align-items: center; gap: 9px; margin-bottom: 18px; }
+.loginbrand strong { font-size: 18px; letter-spacing: .3px; }
+.loginmsg { min-height: 20px; font-size: 12.5px; margin-top: 10px; }
+.loginmsg.ok  { color: var(--ok); }
+.loginmsg.bad { color: var(--err); }
+.loginfoot { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 12px; }
+.notice {
+  background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; font-size: 12.5px;
+  color: var(--muted); margin-bottom: 14px;
+}
+
+/* --- access tab --- */
+.scopelist { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.scopeopt {
+  display: flex; gap: 9px; align-items: flex-start;
+  background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 10px; cursor: pointer;
+}
+/* Inputs in this UI are width:100% by default, which stretches a checkbox
+   across the row and shoves its label to the far edge. */
+.scopeopt input[type="checkbox"] { width: auto; flex: 0 0 auto; margin-top: 3px; }
+.scopeopt > span { flex: 1; }
+.scopeopt .sub { display: block; }
+.scopetag {
+  display: inline-block; font-size: 11px; padding: 1px 7px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--panel2); color: var(--accent2);
+}
+.reveal {
+  margin-top: 14px; padding: 12px;
+  border: 1px solid var(--accent); border-radius: 8px;
+  background: rgba(242, 113, 28, .08);
+}
+.revealwarn { color: var(--accent2); font-size: 12.5px; margin-bottom: 8px; }
+.tokenvalue {
+  flex: 1; word-break: break-all; font-size: 12px;
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 9px;
+}
+tr.dim td { opacity: .55; }
+.rowactions { white-space: nowrap; text-align: right; }
+
+/* --- narrow screens ---------------------------------------------------- */
+/*
+ * The layout already collapsed its two-column grids at 950px and the messenger
+ * at 860px, which is enough for a tablet. A phone needs more than a narrower
+ * grid: the tab strip, the touch targets and the input font size all matter.
+ */
+@media (max-width: 700px) {
+  main { padding: 10px; }
+  .grid2 { gap: 10px; }
+  .card { padding: 12px; }
+
+  .topbar { gap: 10px; padding: 9px 12px; }
+  /* On a wide screen the status strip is pushed to the right of the brand. At
+     this width it belongs on its own line instead of being crushed against it. */
+  .statusstrip { margin-left: 0; width: 100%; gap: 12px; }
+  .powerbox { margin-left: auto; }
+
+  /* Eight tabs wrap onto three rows here, which pushes the content down and
+     moves it every time a badge appears. One scrolling row keeps the page
+     stable; the scrollbar itself is hidden because it would sit on the text. */
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding: 8px 10px 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: 0 0 auto; }
+
+  /* Finger-sized targets rather than cursor-sized ones. */
+  .btn { padding: 11px 14px; }
+  .btn.small { padding: 8px 12px; }
+  .keypad button { padding: 16px 0; font-size: 19px; }
+  .chip { padding: 6px 12px; }
+
+  /* iOS zooms the whole page when focusing an input whose text is under 16px,
+     and never zooms back out. This is the fix, not a style preference. */
+  input, select, textarea { font-size: 16px; }
+
+  .display { font-size: 21px; }
+
+  /* A row of controls sized to sit side by side on a desktop turns into three
+     unusable slivers at 390px. Let them stack. */
+  .row { flex-wrap: wrap; }
+
+  /* Stacked, these panes have no height to divide, so cap them instead of
+     letting one list push everything else off the screen. */
+  .messenger { min-height: 0; }
+  #thread-list { max-height: 260px; }
+  .tablewrap { max-height: 320px; }
+  .msg { max-width: 85%; }
+}

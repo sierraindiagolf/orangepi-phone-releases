@@ -1,0 +1,19 @@
+# Quectel EC25-E on Orange Pi 3 LTS
+#
+# This stack owns the modem directly over its AT port, so ModemManager must not
+# probe or claim it — concurrent AT access breaks call state, SMS storage
+# selection and USSD sessions.
+
+# AT ports readable/writable by the dialout group (the phone service runs there).
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", MODE="0660", GROUP="dialout"
+
+# Keep ModemManager off the whole device and off each serial port.
+ACTION=="add|change", SUBSYSTEM=="usb", ATTR{idVendor}=="2c7c", ATTR{idProduct}=="0125", ENV{ID_MM_DEVICE_IGNORE}="1"
+ACTION=="add|change", SUBSYSTEM=="tty", ENV{ID_VENDOR_ID}=="2c7c", ENV{ID_MODEL_ID}=="0125", ENV{ID_MM_PORT_IGNORE}="1"
+
+# Rebind the QMI interface when the modem is hotplugged.
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="2c7c", ATTR{idProduct}=="0125", TAG+="systemd", ENV{SYSTEMD_WANTS}+="ec25-bind.service"
+
+# Stable symlink for the primary AT port (interface 2).
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", ENV{ID_USB_INTERFACE_NUM}=="02", SYMLINK+="ec25-at"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="2c7c", ATTRS{idProduct}=="0125", ENV{ID_USB_INTERFACE_NUM}=="03", SYMLINK+="ec25-at2"

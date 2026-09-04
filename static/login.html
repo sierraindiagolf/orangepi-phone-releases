@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iris — sign in</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="loginbody">
+
+<div class="logincard">
+  <div class="loginbrand">
+    <span class="dot ok"></span>
+    <strong>iris</strong>
+    <span class="sub">Orange Pi phone — EC25-E</span>
+  </div>
+
+  <!-- First run: no password has ever been set on this board. -->
+  <div id="setup-note" class="notice hidden">
+    No password is set on this board yet. Choose one now — this is the only
+    account, and it guards call, SMS and recording access.
+  </div>
+
+  <div id="form-login">
+    <label class="lbl">User</label>
+    <input id="l-user" value="admin" autocomplete="username">
+
+    <label class="lbl">Password</label>
+    <input id="l-pass" type="password" autocomplete="current-password">
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary grow" id="btn-login">Sign in</button>
+    </div>
+    <div class="row">
+      <a href="#" id="link-forgot" class="sub">Forgot the password?</a>
+    </div>
+  </div>
+
+  <!-- Reset by SMS: the board is a phone, so no mail server is involved. -->
+  <div id="form-reset" class="hidden">
+    <div class="notice">
+      A six-digit code has been sent by SMS to the recovery number. It is valid
+      for 15 minutes.
+    </div>
+    <label class="lbl">Code</label>
+    <input id="r-code" inputmode="numeric" autocomplete="one-time-code">
+
+    <label class="lbl">New password</label>
+    <input id="r-pass" type="password" autocomplete="new-password">
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn primary grow" id="btn-reset">Set new password</button>
+    </div>
+    <div class="row">
+      <a href="#" id="link-back" class="sub">Back to sign in</a>
+    </div>
+  </div>
+
+  <div id="l-msg" class="loginmsg"></div>
+
+  <div class="loginfoot sub">
+    Locked out and the modem is down? On the board:
+    <code>python3 ~/phone/manage.py set-password</code>
+  </div>
+</div>
+
+<script src="login.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# Install to /etc/sudoers.d/iris-ntp, root:root, mode 0440.
+#
+# Lets the phone API set the NTP server and force a resync without granting it
+# anything else. Narrow on purpose: shoim2 currently also has a blanket
+# NOPASSWD:ALL rule in /etc/sudoers.d/shoim2, which makes this redundant today,
+# but that blanket rule is worth removing and this file is what keeps the time
+# controls working when it goes.
+shoim2 ALL=(root) NOPASSWD: /usr/local/sbin/iris-set-ntp

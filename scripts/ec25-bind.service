@@ -1,0 +1,17 @@
+[Unit]
+Description=Quectel EC25-E driver binding (usbserial AT ports + qmi_wwan data)
+After=systemd-udev-settle.service
+Before=ec25-lte.service phone-api.service
+Wants=ec25-lte.service
+
+[Service]
+# Deliberately NOT RemainAfterExit: the udev rule re-triggers this unit when the
+# modem re-enumerates (firmware reset, replug), and systemd will not restart an
+# oneshot that is still held active.
+Type=oneshot
+ExecStart=/home/shoim2/phone/scripts/ec25-bind.sh
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

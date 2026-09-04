@@ -1,0 +1,20 @@
+[Unit]
+Description=DIGI Romania LTE data session over QMI (EC25-E)
+After=ec25-bind.service network.target
+Requires=ec25-bind.service
+
+[Service]
+Type=simple
+Environment=LTE_APN=internet
+Environment=LTE_RT_TABLE=100
+# Set to 1 to also install a high-metric default route (LTE as failover uplink).
+Environment=LTE_DEFAULT_ROUTE=0
+Environment=LTE_CHECK_INTERVAL=60
+ExecStart=/home/shoim2/phone/scripts/lte-up.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

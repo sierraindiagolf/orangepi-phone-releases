@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orange Pi Phone — EC25-E</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="dot" id="conn-dot"></span>
+    <strong>Orange Pi Phone</strong>
+    <span class="sub" id="brand-sub">Quectel EC25-E</span>
+  </div>
+  <div class="statusstrip" id="statusstrip"></div>
+  <div class="modebox">
+    <span class="modelabel">Mode</span>
+    <span class="modepill" id="mode-pill" title="">…</span>
+    <button class="btn small" id="btn-mode-toggle">Switch</button>
+  </div>
+  <div class="powerbox">
+    <button class="btn small" id="btn-sys-reboot"
+            title="Reboot the board — calls, SMS and LTE drop for about a minute">Reboot</button>
+    <button class="btn small danger" id="btn-sys-shutdown"
+            title="Shut the board down — it cannot be switched back on remotely, someone has to be at the board">Shut down</button>
+  </div>
+</header>
+
+<div id="modebanner" class="modebanner hidden">
+  <span class="spin"></span>
+  <span id="modebanner-text">Switching modem mode…</span>
+</div>
+
+<div id="callbar" class="callbar hidden">
+  <span class="pulse"></span>
+  <span id="callbar-text">Call in progress</span>
+  <span class="grow"></span>
+  <button class="btn small" id="callbar-answer">Answer</button>
+  <button class="btn small danger" id="callbar-hangup">Hang up</button>
+</div>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="dialer">Phone</button>
+  <button class="tab" data-tab="sms">Messages <span class="badge hidden" id="sms-badge">0</span></button>
+  <button class="tab" data-tab="ussd">USSD</button>
+  <button class="tab" data-tab="phonebook">Phonebook</button>
+  <button class="tab" data-tab="at">AT Console</button>
+  <button class="tab" data-tab="carrier">Carrier</button>
+  <button class="tab" data-tab="access">Access</button>
+  <button class="tab" data-tab="api">API Explorer</button>
+</nav>
+
+<main>
+
+<!-- ===================== PHONE ===================== -->
+<section class="panel active" id="tab-dialer">
+  <div class="grid2">
+    <div class="card">
+      <h2>Dialer</h2>
+      <input class="display" id="dial-number" placeholder="07xx xxx xxx" autocomplete="off">
+      <div class="keypad">
+        <button>1</button><button>2</button><button>3</button>
+        <button>4</button><button>5</button><button>6</button>
+        <button>7</button><button>8</button><button>9</button>
+        <button>*</button><button>0</button><button>#</button>
+        <button data-key="+">+</button><button data-key="back">⌫</button><button data-key="clear">C</button>
+      </div>
+      <div class="row">
+        <button class="btn primary grow" id="btn-dial">Call</button>
+        <button class="btn danger" id="btn-hangup">Hang up</button>
+      </div>
+      <div class="row">
+        <input id="dial-notes" placeholder="Note for the call register (optional)">
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="opt-record"> Record this call</label>
+        <span class="grow"></span>
+        <select id="opt-play"><option value="">No audio to inject</option></select>
+      </div>
+      <div id="dial-result" class="result"></div>
+      <div class="dtmf hidden" id="dtmf-box">
+        <label>DTMF while in a call</label>
+        <div class="row">
+          <input id="dtmf-digits" placeholder="e.g. 1 or 123#">
+          <button class="btn" id="btn-dtmf">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Call audio</h2>
+      <div class="sub" style="margin-bottom:10px">
+        The board has no speakers — call audio is recorded to a file. The
+        playback side is injected into the call as the microphone.
+      </div>
+      <div class="row">
+        <span class="modepill" id="audio-state">…</span>
+        <span class="grow"></span>
+        <button class="btn small" id="btn-rec-start">Record now</button>
+        <button class="btn small danger" id="btn-rec-stop">Stop</button>
+      </div>
+      <div class="row">
+        <select id="inject-file"></select>
+        <button class="btn small" id="btn-inject">Inject</button>
+        <button class="btn small danger" id="btn-inject-stop">Stop</button>
+      </div>
+      <div id="audio-result" class="result"></div>
+      <h3>Recordings</h3>
+      <div class="tablewrap short">
+        <table id="rec-table">
+          <thead><tr><th>File</th><th>Length</th><th>Level</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Call register</h2>
+      <div class="row">
+        <input id="calls-search" placeholder="Search number or note">
+        <select id="calls-direction">
+          <option value="">All</option>
+          <option value="OUTGOING">Outgoing</option>
+          <option value="INCOMING">Incoming</option>
+        </select>
+        <button class="btn" id="btn-calls-refresh">Refresh</button>
+        <button class="btn danger" id="btn-calls-clear">Clear</button>
+      </div>
+      <div class="tablewrap">
+        <table id="calls-table">
+          <thead><tr><th>When</th><th>Number</th><th>Dir</th><th>Status</th><th>Dur</th><th>Note</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== MESSAGES ===================== -->
+<section class="panel" id="tab-sms">
+  <div class="messenger">
+    <aside class="threads">
+      <div class="threadhead">
+        <button class="btn small primary grow" id="btn-new-thread">New message</button>
+        <button class="btn small" id="btn-sms-sync" title="Import from modem store">Sync</button>
+      </div>
+      <div id="thread-list"></div>
+    </aside>
+    <div class="conversation">
+      <div class="convhead">
+        <div>
+          <strong id="conv-title">Select a conversation</strong>
+          <div class="sub" id="conv-sub"></div>
+        </div>
+        <span class="grow"></span>
+        <button class="btn small" id="btn-conv-call">Call</button>
+        <button class="btn small danger" id="btn-conv-delete">Delete</button>
+      </div>
+      <div class="bubbles" id="bubbles">
+        <p class="empty">Pick a conversation on the left, or start a new message.
+        Sending is built into this view.</p>
+      </div>
+      <div class="composer">
+        <input id="compose-to" placeholder="To: 07xx xxx xxx (comma-separate for several)">
+        <div class="row">
+          <textarea id="compose-body" rows="2" placeholder="Message"></textarea>
+          <button class="btn primary" id="btn-send-sms">Send</button>
+        </div>
+        <div class="meta"><span id="compose-count">0 chars</span><span id="compose-enc"></span></div>
+        <div id="send-result" class="result"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== USSD ===================== -->
+<section class="panel" id="tab-ussd">
+  <div class="grid2">
+    <div class="card">
+      <h2>USSD</h2>
+      <div class="row">
+        <input id="ussd-code" placeholder="*118#" value="*118#">
+        <button class="btn primary" id="btn-ussd-send">Send</button>
+        <button class="btn" id="btn-ussd-cancel">Cancel session</button>
+      </div>
+      <div class="chips" id="ussd-presets"></div>
+      <pre class="output" id="ussd-output">No request sent yet.</pre>
+    </div>
+    <div class="card">
+      <h2>History</h2>
+      <div class="tablewrap">
+        <table id="ussd-table">
+          <thead><tr><th>When</th><th>Code</th><th>Response</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PHONEBOOK ===================== -->
+<section class="panel" id="tab-phonebook">
+  <div class="grid2">
+    <div class="card">
+      <h2>Add / edit contact</h2>
+      <input type="hidden" id="pb-id">
+      <div class="row"><input id="pb-name" placeholder="Name"></div>
+      <div class="row"><input id="pb-number" placeholder="07xx xxx xxx"></div>
+      <div class="row"><input id="pb-notes" placeholder="Notes (optional)"></div>
+      <div class="row">
+        <button class="btn primary" id="btn-pb-save">Save</button>
+        <button class="btn" id="btn-pb-reset">Clear</button>
+        <span class="grow"></span>
+        <button class="btn" id="btn-pb-import">Import from SIM</button>
+      </div>
+      <div id="pb-result" class="result"></div>
+    </div>
+    <div class="card">
+      <h2>Contacts</h2>
+      <div class="row">
+        <input id="pb-search" placeholder="Search">
+        <button class="btn" id="btn-pb-refresh">Refresh</button>
+      </div>
+      <div class="tablewrap">
+        <table id="pb-table">
+          <thead><tr><th>Name</th><th>Number</th><th>Notes</th><th>Actions</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== AT CONSOLE ===================== -->
+<section class="panel" id="tab-at">
+  <div class="card">
+    <h2>AT console</h2>
+    <div class="row">
+      <input id="at-command" placeholder="AT+CSQ" spellcheck="false">
+      <button class="btn primary" id="btn-at-send">Run</button>
+    </div>
+    <div class="chips" id="at-presets"></div>
+    <pre class="output tall" id="at-output">Ready. Commands run on the primary AT port.</pre>
+    <h3>Recent commands</h3>
+    <div class="tablewrap short">
+      <table id="at-table">
+        <thead><tr><th>When</th><th>Command</th><th>OK</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CARRIER ===================== -->
+<section class="panel" id="tab-carrier">
+  <div class="grid2">
+    <div class="card">
+      <h2>Carrier settings</h2>
+      <div class="sub" style="margin-bottom:12px">
+        The SMS domain is the setting that lets VoLTE and SMS work together.
+        <code>AT+CGSMS</code> does not write through to it — it is a Qualcomm NV
+        item, edited directly here.
+      </div>
+
+      <label class="lbl">SMS domain (NV <code>sms_domain_pref</code>)</label>
+      <div class="row">
+        <select id="car-domain">
+          <option value="00">00 — CS preferred (SMS over NAS, works with VoLTE)</option>
+          <option value="01">01 — PS preferred (SMS over IMS, refused by DIGI)</option>
+          <option value="02">02 — CS only</option>
+          <option value="03">03 — PS only</option>
+        </select>
+      </div>
+
+      <label class="lbl">IMS / VoLTE</label>
+      <div class="row">
+        <select id="car-ims">
+          <option value="1">1 — on (VoLTE, calls ring in 3-6s)</option>
+          <option value="2">2 — off (calls fall back to CSFB, 6.5-12s)</option>
+          <option value="0">0 — follow the MBN profile</option>
+        </select>
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <label class="lbl">SMSC</label>
+          <input id="car-smsc" placeholder="+40770000050">
+        </div>
+        <div style="width:120px">
+          <label class="lbl">CGSMS</label>
+          <select id="car-cgsms">
+            <option value="0">0 PS</option><option value="1">1 CS</option>
+            <option value="2">2 PS pref</option><option value="3">3 CS pref</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <label class="lbl">Storage</label>
+          <select id="car-storage">
+            <option value="ME">ME — modem</option><option value="SM">SM — SIM</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label class="lbl">Network scan mode</label>
+          <select id="car-scan">
+            <option value="0">0 — automatic</option>
+            <option value="1">1 — GSM only</option>
+            <option value="2">2 — WCDMA only</option>
+            <option value="3">3 — LTE only</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="btn-car-save">Apply</button>
+        <button class="btn" id="btn-car-save-reset">Apply + reset modem</button>
+        <span class="grow"></span>
+        <button class="btn" id="btn-car-refresh">Reload</button>
+      </div>
+      <div id="car-result" class="result"></div>
+      <div class="sub">Changing the SMS domain or IMS needs a module reset
+        (~40 s) before it takes effect.</div>
+    </div>
+
+    <div class="card">
+      <h2>Network</h2>
+      <div class="tablewrap short">
+        <table id="car-net"><tbody></tbody></table>
+      </div>
+
+      <h3>Voicemail</h3>
+      <div class="sub" style="margin-bottom:10px">
+        Answers an incoming call, plays a greeting, records the caller and hangs
+        up. The recording appears under Call audio.
+      </div>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="vm-enabled"> Enabled</label>
+        <span class="grow"></span>
+        <span class="modepill" id="vm-state">off</span>
+      </div>
+      <div class="row">
+        <div style="flex:1">
+          <label class="lbl">Ring for (seconds) before answering</label>
+          <input id="vm-ring" type="number" min="0" max="60" step="1">
+        </div>
+        <div style="flex:1">
+          <label class="lbl">Max recording (seconds)</label>
+          <input id="vm-max" type="number" min="5" max="300" step="5">
+        </div>
+      </div>
+      <div class="row">
+        <div style="flex:1">
+          <label class="lbl">Greeting</label>
+          <select id="vm-greeting"></select>
+        </div>
+        <button class="btn" id="btn-vm-save" style="align-self:flex-end">Save</button>
+      </div>
+      <div id="vm-result" class="result"></div>
+    </div>
+
+    <div class="card">
+      <h2>Time and NTP</h2>
+      <div class="sub" style="margin-bottom:12px">
+        There is no RTC battery on this board, so after a power cut the clock
+        stays at whatever it was when the power went until NTP lands. That is
+        not cosmetic: TLS certificate validation and the prepaid reminder both
+        read dates from it, and log timestamps around a boot cannot be trusted
+        until <b>Synchronized</b> below says yes.
+      </div>
+
+      <div class="tablewrap short">
+        <table id="ntp-state"><tbody></tbody></table>
+      </div>
+
+      <label class="lbl">NTP server(s) — space or comma separated, up to 4</label>
+      <div class="row">
+        <input id="ntp-servers" placeholder="10.64.88.1 2.debian.pool.ntp.org">
+        <button class="btn primary" id="btn-ntp-save"
+                style="align-self:flex-end">Apply</button>
+      </div>
+      <div class="sub">The LAN gateway answers faster than the public pool and
+        keeps working when the WAN does not.</div>
+
+      <div class="row">
+        <button class="btn" id="btn-ntp-sync">Sync now</button>
+        <span class="grow"></span>
+        <button class="btn" id="btn-ntp-refresh">Reload</button>
+      </div>
+      <div id="ntp-result" class="result"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ACCESS ===================== -->
+<section class="panel" id="tab-access">
+  <div class="grid2">
+
+    <div class="card">
+      <h2>Account</h2>
+      <div class="sub" style="margin-bottom:12px">
+        Signed in as <strong id="acc-user">…</strong>.
+        <a href="#" id="btn-logout">Sign out</a>
+      </div>
+
+      <label class="lbl">Current password</label>
+      <input id="acc-current" type="password" autocomplete="current-password">
+      <label class="lbl">New password</label>
+      <input id="acc-new" type="password" autocomplete="new-password">
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btn-acc-save">Change password</button>
+      </div>
+      <div id="acc-result" class="result"></div>
+
+      <h2 style="margin-top:22px">Recovery number</h2>
+      <div class="sub" style="margin-bottom:12px">
+        Where a reset code is sent by SMS if the password is forgotten. The board
+        sends it through its own SIM, so no mail server is involved. If the modem
+        is down, reset on the board instead:
+        <code>python3 ~/phone/manage.py set-password</code>
+      </div>
+      <label class="lbl">Number</label>
+      <input id="acc-recovery" placeholder="+40771324635">
+      <label class="lbl">Current password (to confirm)</label>
+      <input id="acc-recovery-pw" type="password" autocomplete="current-password">
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="btn-recovery-save">Save number</button>
+      </div>
+      <div id="recovery-result" class="result"></div>
+    </div>
+
+    <div class="card">
+      <h2>API tokens</h2>
+      <div class="sub" style="margin-bottom:12px">
+        For machines — HomeAssistant ringing the gate, scripts. Each token is
+        limited to the scopes you tick, so a token that leaks cannot do more than
+        its job. Tokens cannot create or revoke other tokens.
+      </div>
+
+      <label class="lbl">Name</label>
+      <input id="tok-name" placeholder="gate (HomeAssistant)">
+
+      <label class="lbl">Scopes</label>
+      <div id="tok-scopes" class="scopelist"></div>
+
+      <div class="row">
+        <div style="flex:1">
+          <label class="lbl">Expires</label>
+          <select id="tok-expires">
+            <option value="">never</option>
+            <option value="30">in 30 days</option>
+            <option value="90">in 90 days</option>
+            <option value="365">in a year</option>
+          </select>
+        </div>
+        <button class="btn primary" id="btn-tok-create"
+                style="align-self:flex-end">Create token</button>
+      </div>
+
+      <!-- Shown exactly once: only the hash is stored server-side. -->
+      <div id="tok-reveal" class="reveal hidden">
+        <div class="revealwarn">
+          Copy this now — it will never be shown again.
+        </div>
+        <div class="row">
+          <code id="tok-value" class="tokenvalue"></code>
+          <button class="btn small" id="btn-tok-copy">Copy</button>
+        </div>
+        <div class="sub" id="tok-hint"></div>
+      </div>
+
+      <div id="tok-result" class="result"></div>
+
+      <div class="tablewrap" style="margin-top:14px">
+        <table id="tok-table">
+          <thead><tr>
+            <th>Name</th><th>Scopes</th><th>Prefix</th>
+            <th>Last used</th><th>Expires</th><th></th>
+          </tr></thead>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Software & Firmware</h2>
+      <div class="sub" style="margin-bottom:12px">
+        Check for software update tags published on GitHub releases.
+      </div>
+
+      <div class="tablewrap short">
+        <table id="firmware-state"><tbody></tbody></table>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn primary" id="btn-firmware-check">Check for updates</button>
+      </div>
+      <div id="firmware-result" class="result"></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== API EXPLORER ===================== -->
+<section class="panel" id="tab-api">
+  <div class="grid2">
+    <div class="card">
+      <h2>Endpoints</h2>
+      <div id="api-list"></div>
+    </div>
+    <div class="card">
+      <h2>Request</h2>
+      <div class="row">
+        <select id="api-method">
+          <option>GET</option><option>POST</option>
+          <option>PUT</option><option>DELETE</option>
+        </select>
+        <input id="api-path" placeholder="/api/status">
+        <button class="btn primary" id="btn-api-send">Send</button>
+      </div>
+      <label class="lbl">Request body (JSON)</label>
+      <textarea id="api-body" rows="6" spellcheck="false"></textarea>
+      <label class="lbl">Response <span id="api-status"></span></label>
+      <pre class="output tall" id="api-output">No request sent yet.</pre>
+    </div>
+  </div>
+</section>
+
+</main>
+<script src="app.js"></script>
+</body>
+</html>
