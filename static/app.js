@@ -1112,7 +1112,7 @@ $("#btn-tok-create").addEventListener("click", async () => {
   loadTokens();
 });
 
-$("#btn-tok-copy").addEventListener("click", async () => {
+$("#btn-tok-copy")?.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText($("#tok-value").textContent);
     say("#tok-result", "Copied to the clipboard.");
@@ -1121,7 +1121,7 @@ $("#btn-tok-copy").addEventListener("click", async () => {
   }
 });
 
-$("#tok-rows").addEventListener("click", async (e) => {
+$("#tok-rows")?.addEventListener("click", async (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
   const { revoke, regen, purge } = btn.dataset;
@@ -1145,10 +1145,11 @@ $("#tok-rows").addEventListener("click", async (e) => {
 // ===================== FIRMWARE / UPDATES =====================
 
 async function loadFirmwareCheck() {
+  const btn = $("#btn-firmware-check");
   say("#firmware-result", "Checking GitHub for releases…");
-  $("#btn-firmware-check").disabled = true;
+  if (btn) btn.disabled = true;
   const { data } = await api("GET", "/api/firmware/check");
-  $("#btn-firmware-check").disabled = false;
+  if (btn) btn.disabled = false;
 
   if (!data.success) {
     say("#firmware-result", data.error || "Could not check updates", true);
@@ -1166,17 +1167,20 @@ async function loadFirmwareCheck() {
     rows.push(["Available tags", data.versions.join(", ")]);
   }
 
-  $("#firmware-state tbody").innerHTML = rows
-    .map(([k, v]) => `<tr><td style="color:var(--muted)">${esc(k)}</td>`
-      + `<td class="wrap">${esc(v)}</td></tr>`)
-    .join("");
+  const tbody = $("#firmware-state tbody");
+  if (tbody) {
+    tbody.innerHTML = rows
+      .map(([k, v]) => `<tr><td style="color:var(--muted)">${esc(k)}</td>`
+        + `<td class="wrap">${esc(v)}</td></tr>`)
+      .join("");
+  }
 
   say("#firmware-result", data.update_available
     ? `New update found: ${data.latest_version}`
     : `Software is up to date (${data.current_version})`, !data.success);
 }
 
-$("#btn-firmware-check").addEventListener("click", loadFirmwareCheck);
+$("#btn-firmware-check")?.addEventListener("click", loadFirmwareCheck);
 
 // ===================== boot =====================
 
