@@ -32,7 +32,7 @@ from firmware import FirmwareManager
 import modem as modem_mod
 import mqtt_bridge
 
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 FIRMWARE = FirmwareManager(current_version=VERSION)
 
 PORT = int(os.environ.get("PHONE_PORT", "8080"))
@@ -2121,7 +2121,7 @@ def _spec():
         "openapi": "3.0.0",
         "info": {
             "title": "Orange Pi 3 LTS Phone API",
-            "version": "1.0.1",
+            "version": "1.0.2",
             "description": "Voice, SMS, USSD, phonebook and AT access for a "
                            "Quectel EC25-E on DIGI Romania.",
         },
