@@ -102,8 +102,9 @@ RULES = [
     (_R(r"^/api/balance$"),              {"POST"},                 FULL),
     (_R(r"^/api/balance$"),              {"GET"},                  READ),
 
-    # Software and firmware release check.
+    # Software and firmware release check / update.
     (_R(r"^/api/firmware/check$"),       {"GET"},                  READ),
+    (_R(r"^/api/firmware/update$"),      {"POST"},                 FULL),
 
     # Configuration changes.
     (_R(r"^/api/modem/configure$"),      None,                     FULL),

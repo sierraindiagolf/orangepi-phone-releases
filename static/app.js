@@ -1144,8 +1144,11 @@ $("#tok-rows")?.addEventListener("click", async (e) => {
 
 // ===================== FIRMWARE / UPDATES =====================
 
+let latestAvailableVersion = null;
+
 async function loadFirmwareCheck() {
   const btn = $("#btn-firmware-check");
+  const updateBtn = $("#btn-firmware-update");
   say("#firmware-result", "Checking GitHub for releases…");
   if (btn) btn.disabled = true;
   const { data } = await api("GET", "/api/firmware/check");
@@ -1153,8 +1156,11 @@ async function loadFirmwareCheck() {
 
   if (!data.success) {
     say("#firmware-result", data.error || "Could not check updates", true);
+    if (updateBtn) updateBtn.style.display = "none";
     return;
   }
+
+  latestAvailableVersion = data.latest_version;
 
   const rows = [
     ["Current version", data.current_version],
@@ -1175,12 +1181,70 @@ async function loadFirmwareCheck() {
       .join("");
   }
 
-  say("#firmware-result", data.update_available
-    ? `New update found: ${data.latest_version}`
-    : `Software is up to date (${data.current_version})`, !data.success);
+  if (data.update_available) {
+    say("#firmware-result", `New update found: ${data.latest_version}`);
+    if (updateBtn) {
+      updateBtn.style.display = "inline-block";
+      updateBtn.textContent = `Install update (${data.latest_version})`;
+      updateBtn.disabled = false;
+    }
+  } else {
+    say("#firmware-result", `Software is up to date (${data.current_version})`);
+    if (updateBtn) updateBtn.style.display = "none";
+  }
+}
+
+async function triggerFirmwareUpdate() {
+  if (!latestAvailableVersion) return;
+  if (!confirm(`Install update ${latestAvailableVersion} and restart phone service?`)) {
+    return;
+  }
+
+  const checkBtn = $("#btn-firmware-check");
+  const updateBtn = $("#btn-firmware-update");
+  if (checkBtn) checkBtn.disabled = true;
+  if (updateBtn) {
+    updateBtn.disabled = true;
+    updateBtn.textContent = "Installing update…";
+  }
+
+  say("#firmware-result", `Downloading and installing ${latestAvailableVersion}… please wait.`);
+
+  const { data } = await api("POST", "/api/firmware/update", { version: latestAvailableVersion });
+  if (!data.success) {
+    say("#firmware-result", data.error || "Update failed", true);
+    if (checkBtn) checkBtn.disabled = false;
+    if (updateBtn) updateBtn.disabled = false;
+    return;
+  }
+
+  say("#firmware-result", `Update installed successfully! Restarting service… Reconnecting…`);
+
+  setTimeout(async () => {
+    let attempts = 0;
+    const interval = setInterval(async () => {
+      attempts++;
+      say("#firmware-result", `Reconnecting to phone service (attempt ${attempts})…`);
+      try {
+        const ping = await fetch("/api/status", { cache: "no-store" });
+        if (ping.ok) {
+          clearInterval(interval);
+          say("#firmware-result", `Service is back online! Reloading page…`);
+          setTimeout(() => location.reload(), 1000);
+        }
+      } catch (e) {
+        // Still restarting
+      }
+      if (attempts > 30) {
+        clearInterval(interval);
+        say("#firmware-result", "Service taking longer than expected. Please refresh manually.", true);
+      }
+    }, 2000);
+  }, 3000);
 }
 
 $("#btn-firmware-check")?.addEventListener("click", loadFirmwareCheck);
+$("#btn-firmware-update")?.addEventListener("click", triggerFirmwareUpdate);
 
 // ===================== boot =====================
 
