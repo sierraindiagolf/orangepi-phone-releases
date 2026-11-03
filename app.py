@@ -32,7 +32,7 @@ from firmware import FirmwareManager
 import modem as modem_mod
 import mqtt_bridge
 
-VERSION = "1.0.2"
+VERSION = "1.0.3"
 FIRMWARE = FirmwareManager(current_version=VERSION)
 
 PORT = int(os.environ.get("PHONE_PORT", "8080"))
@@ -2005,12 +2005,31 @@ def api_balance_check():
     return ok(started=True, poll="/api/balance")
 
 
-# --- firmware & version check ----------------------------------------------
+# --- firmware & version check / update -------------------------------------
 
 @app.route("/api/firmware/check")
 def api_firmware_check():
     """Check for new software/firmware release tags on GitHub."""
     return ok(**FIRMWARE.check_updates())
+
+
+@app.route("/api/firmware/update", methods=["POST"])
+def api_firmware_update():
+    """Download, extract and install a release update, then schedule a service restart."""
+    data = body() or {}
+    target = data.get("version")
+    res = FIRMWARE.apply_update(target_version=target)
+    if not res.get("success"):
+        return fail(res.get("error", "Update failed"), 400)
+
+    def restart_service():
+        time.sleep(2.0)
+        subprocess.run(["sudo", "-n", "systemctl", "restart", "phone-api.service"], check=False)
+
+    threading.Thread(target=restart_service, daemon=True, name="firmware-restart").start()
+
+    return ok(restarting=True, installed_version=res.get("installed_version"),
+              files_updated=res.get("files_updated"), in_seconds=2.0)
 
 
 # --- phonebook -------------------------------------------------------------
@@ -2121,7 +2140,7 @@ def _spec():
         "openapi": "3.0.0",
         "info": {
             "title": "Orange Pi 3 LTS Phone API",
-            "version": "1.0.2",
+            "version": "1.0.3",
             "description": "Voice, SMS, USSD, phonebook and AT access for a "
                            "Quectel EC25-E on DIGI Romania.",
         },
@@ -2190,6 +2209,8 @@ def _spec():
 
             "/api/firmware/check": {"get": op("Check for software updates",
                                               "system")},
+            "/api/firmware/update": {"post": op("Install software update and restart",
+                                                "system")},
 
             "/api/phonebook": {
                 "get": op("List contacts", "phonebook", params=["search"]),
