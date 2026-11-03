@@ -219,6 +219,24 @@ class Bridge:
     def enabled(self):
         return self.env is not None
 
+    def _on_connect(self, client, userdata, flags, reason_code, properties=None):
+        if hasattr(reason_code, "is_failure"):
+            failed = reason_code.is_failure
+        else:
+            failed = (reason_code != 0)
+        if failed:
+            log.warning("mqtt: connect callback failed: %s", reason_code)
+            return
+
+        log.info("mqtt: connected to %s, %d entities announced",
+                 self.env["MQTT_HOST"], len(_discovery_payloads()))
+        try:
+            for topic, payload in _discovery_payloads():
+                client.publish(topic, json.dumps(payload), retain=True)
+            client.publish(AVAIL_TOPIC, "online", retain=True)
+        except Exception as exc:
+            log.warning("mqtt: failed to publish discovery/availability: %s", exc)
+
     def _connect(self):
         import paho.mqtt.client as mqtt
 
@@ -228,15 +246,10 @@ class Bridge:
         # The broker publishes this if the board stops talking, so entities go
         # 'unavailable' rather than sitting on a stale value.
         client.will_set(AVAIL_TOPIC, "offline", retain=True)
+        client.on_connect = self._on_connect
         client.connect(self.env["MQTT_HOST"], int(self.env.get("MQTT_PORT", 1883)), 30)
         client.loop_start()
         self.client = client
-
-        for topic, payload in _discovery_payloads():
-            client.publish(topic, json.dumps(payload), retain=True)
-        client.publish(AVAIL_TOPIC, "online", retain=True)
-        log.info("mqtt: connected to %s, %d entities announced",
-                 self.env["MQTT_HOST"], len(_discovery_payloads()))
 
     def publish_once(self):
         payload = self.status_fn()
